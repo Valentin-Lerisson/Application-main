@@ -80,3 +80,179 @@
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.item-doc {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  border-left: 4px solid #38bdf8;
+  transition: 0.3s;
+}
+
+.item-doc:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(5px);
+}
+
+/* Garde tout ton ancien CSS et ajoute ceci à la fin : */
+
+.nav-button {
+  margin-top: 30px;
+  background: transparent;
+  color: #00d2ff;
+  border: 2px solid #00d2ff;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%; /* Il prend toute la largeur pour être bien visible */
+}
+
+.nav-button:hover {
+  background: #00d2ff;
+  color: #111119;
+  box-shadow: 0 0 20px rgba(0, 210, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.biblio-content {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 20px;
+  border-radius: 12px;
+  margin: 20px 0;
+  border-left: 4px solid #00d2ff;
+}
+
+.biblio-content p {
+  margin: 10px 0;
+  font-size: 1.1rem;
+}
+
+
+/* // Biliotheque */
+
+/* DESIGN GLOBAL */
+.App {
+  background: radial-gradient(circle, #1e1e2f 0%, #111119 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 20px;
+}
+
+.brand { color: #00d2ff; }
+.title { margin-bottom: 20px; }
+
+/* CONTENEUR JEU */
+.game-container {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  padding: 40px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 20px 0; }
+.box { width: 60px; height: 60px; border-radius: 12px; cursor: pointer; transition: 0.3s; }
+.red { background: #ff4757; box-shadow: 0 0 15px rgba(255, 71, 87, 0.3); }
+.green { background: #2ed573; box-shadow: 0 0 20px rgba(46, 213, 115, 0.6); transform: scale(0.9); }
+
+/* PROGRESS BAR */
+.progress-bar { width: 100%; height: 12px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #00d2ff, #3a7bd5); transition: 0.4s; }
+
+/* BIBLIOTHEQUE GRID */
+.biblio-container { width: 100%; max-width: 1100px; text-align: center; }
+.controls { display: flex; justify-content: space-between; margin-bottom: 30px; gap: 10px; }
+
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.book-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  transition: 0.3s;
+}
+
+.book-card:hover { transform: translateY(-5px); background: rgba(255, 255, 255, 0.08); }
+
+.book-img {
+  width: 100%;
+  height: 180px;
+  background: #252538;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.book-img img { width: 100%; height: 100%; object-fit: cover; }
+.book-info { text-align: left; font-size: 0.9rem; flex-grow: 1; }
+.book-info h3 { font-size: 1.1rem; color: #00d2ff; margin-bottom: 10px; }
+
+/* BOUTONS */
+.nav-button {
+  margin-top: 20px;
+  background: transparent;
+  color: #00d2ff;
+  border: 2px solid #00d2ff;
+  padding: 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 100%;
+  font-weight: bold;
+}
+
+.nav-button:hover { background: #00d2ff; color: #111119; }
+
+.add-btn { background: #00d2ff; color: #111119; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+.del-btn { background: #ff4757; border: none; color: white; padding: 8px; border-radius: 5px; cursor: pointer; margin-top: 10px; width: 100%; }
+
+/* POPUP (MODAL) */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  display: flex; justify-content: center; align-items: center; z-index: 1000;
+}
+
+.modal-content {
+  background: #1e1e2f;
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid #00d2ff;
+  width: 350px;
+}
+
+.modal-content input, .modal-content select {
+  width: 100%; padding: 12px; margin-bottom: 15px;
+  background: #111119; border: 1px solid #334155; color: white; border-radius: 8px;
+}
+
+.file-label { display: block; background: #334155; padding: 10px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
+.file-label input { display: none; }
+
+.modal-actions { display: flex; gap: 10px; }
+.cancel-btn { flex: 1; background: #334155; border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
+.confirm-btn { flex: 1; background: #2ed573; border: none; color: white; padding: 10px; border-radius: 8px; cursor: pointer; }
+

@@ -1,17 +1,28 @@
 import React, { useState } from "react";
 import "./App.css";
+import Bibliotheque from "./Bibliotheque";
 
 function App() {
+  const [page, setPage] = useState("jeu");
   const [boxes, setBoxes] = useState(Array(12).fill(false));
 
   const toggleBox = (index) => {
-    const newBoxes = [...boxes];
-    newBoxes[index] = true;
-    setBoxes(newBoxes);
+    const nextBoxes = [...boxes];
+    nextBoxes[index] = true;
+    setBoxes(nextBoxes);
   };
 
-  const greenCount = boxes.filter((box) => box === true).length;
-  const percentage = Math.round((greenCount / boxes.length) * 100);
+  const percentage = Math.round(
+    (boxes.filter((b) => b).length / boxes.length) * 100,
+  );
+
+  if (page === "biblio") {
+    return (
+      <div className="App">
+        <Bibliotheque onBack={() => setPage("jeu")} />
+      </div>
+    );
+  }
 
   return (
     <div className="App">
@@ -19,7 +30,6 @@ function App() {
         <h1 className="title">
           Recrutement <span className="brand">Big Happy</span>
         </h1>
-
         <div className="progress-wrapper">
           <div className="progress-bar">
             <div
@@ -29,31 +39,28 @@ function App() {
           </div>
           <span className="percentage-text">{percentage}% complété</span>
         </div>
-
         <div className="grid">
-          {boxes.map((isGreen, index) => (
+          {boxes.map((isGreen, i) => (
             <div
-              key={index}
+              key={i}
               className={`box ${isGreen ? "green" : "red"}`}
-              onClick={() => toggleBox(index)}
+              onClick={() => toggleBox(i)}
             ></div>
           ))}
         </div>
-
         {percentage === 100 && (
           <div className="success-message">
             <h2>Félicitations ! 🎉</h2>
-            <p>
-              Vous êtes accepté en alternance chez <strong>Big Happy</strong>.
-            </p>
-            {/* On utilise process.env.PUBLIC_URL pour être sûr que React trouve l'image */}
             <img
               src={process.env.PUBLIC_URL + "/logo-bh.png"}
-              alt="Logo Big Happy"
+              alt="Logo BH"
               className="final-logo"
             />
           </div>
         )}
+        <button className="nav-button" onClick={() => setPage("biblio")}>
+          Ouvrir la Bibliothèque →
+        </button>
       </div>
     </div>
   );
