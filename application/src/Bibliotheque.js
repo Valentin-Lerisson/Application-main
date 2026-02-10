@@ -8,6 +8,8 @@ function Bibliotheque({ onBack }) {
   const [sortBy, setSortBy] = useState("Recent");
   const [searchTerm, setSearchTerm] = useState("");
   const [isEditing, setIsEditing] = useState(null);
+  const [showHeader, setShowHeader] = useState(true); // État pour le scroll
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   const initialBooks = [
     {
@@ -66,24 +68,28 @@ function Bibliotheque({ onBack }) {
     resume: "",
   });
 
+  // --- SAUVEGARDE & SCROLL LISTENERS ---
   useEffect(() => {
     localStorage.setItem("bh_library_data", JSON.stringify(books));
     localStorage.setItem("bh_history_data", JSON.stringify(deletedBooks));
   }, [books, deletedBooks]);
 
-  // --- STATISTIQUES ---
-  const totalBooks = books.length;
-  const favoriteCount = books.filter((b) => b.favori).length;
-  const mostCommonType = books.reduce((acc, curr) => {
-    acc[curr.type] = (acc[curr.type] || 0) + 1;
-    return acc;
-  }, {});
-  const topGenre =
-    Object.keys(mostCommonType).length > 0
-      ? Object.keys(mostCommonType).reduce((a, b) =>
-          mostCommonType[a] > mostCommonType[b] ? a : b,
-        )
-      : "Aucun";
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY =
+        document.querySelector(".scroll-area")?.scrollTop || 0;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setShowHeader(false); // On descend -> masquer
+      } else {
+        setShowHeader(true); // On remonte -> afficher
+      }
+      setLastScrollY(currentScrollY);
+    };
+
+    const scrollContainer = document.querySelector(".scroll-area");
+    scrollContainer?.addEventListener("scroll", handleScroll);
+    return () => scrollContainer?.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   // --- ACTIONS ---
   const handleSave = (e) => {
@@ -98,6 +104,17 @@ function Bibliotheque({ onBack }) {
       setBooks([{ ...newBook, id: Date.now() }, ...books]);
     }
     closeModal();
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewBook({ ...newBook, image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const openEdit = (book) => {
@@ -139,7 +156,7 @@ function Bibliotheque({ onBack }) {
   };
 
   const finalDelete = (id) => {
-    if (window.confirm("Supprimer définitivement de l'historique ?")) {
+    if (window.confirm("Supprimer définitivement ?")) {
       setDeletedBooks(deletedBooks.filter((b) => b.id !== id));
     }
   };
@@ -159,7 +176,21 @@ function Bibliotheque({ onBack }) {
     });
   };
 
-  // --- FILTRAGE ET TRI ---
+  // --- STATS ---
+  const totalBooks = books.length;
+  const favoriteCount = books.filter((b) => b.favori).length;
+  const mostCommonType = books.reduce((acc, curr) => {
+    acc[curr.type] = (acc[curr.type] || 0) + 1;
+    return acc;
+  }, {});
+  const topGenre =
+    Object.keys(mostCommonType).length > 0
+      ? Object.keys(mostCommonType).reduce((a, b) =>
+          mostCommonType[a] > mostCommonType[b] ? a : b,
+        )
+      : "Aucun";
+
+  // --- FILTRAGE ---
   const filtered = books
     .filter((b) => {
       const matchType =
@@ -180,55 +211,49 @@ function Bibliotheque({ onBack }) {
     });
 
   return (
-    <div className="biblio-wrapper">
-      {/* TABLEAU DE BORD STATS */}
-      <div className="stats-dashboard">
-        <div className="stat-card">
-          <span>📚 Total</span>
-          <strong>{totalBooks}</strong>
+    <div className={`biblio-wrapper ${!showHeader ? "header-hidden" : ""}`}>
+      {/* SECTION ESCAMOTABLE AU SCROLL */}
+      <div className="collapsible-header">
+        <div className="stats-dashboard">
+          <div className="stat-card">
+            <span>📚 Total</span>
+            <strong>{totalBooks}</strong>
+          </div>
+          <div className="stat-card">
+            <span>❤️ Favoris</span>
+            <strong>{favoriteCount}</strong>
+          </div>
+          <div className="stat-card">
+            <span>🔥 Top Genre</span>
+            <strong>{topGenre}</strong>
+          </div>
         </div>
-        <div className="stat-card">
-          <span>❤️ Favoris</span>
-          <strong>{favoriteCount}</strong>
-        </div>
-        <div className="stat-card">
-          <span>🔥 Top Genre</span>
-          <strong>{topGenre}</strong>
-        </div>
-      </div>
 
-      <header className="biblio-header">
-        {/* TITRE RE-INTÉGRÉ ICI */}
-        <h1 className="title neon-title">
-          📚 Bibliothèque <span className="brand">Big Happy</span>
-        </h1>
-
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Rechercher un titre, un auteur..."
-            className="neon-search"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <div className="toolbar">
-          <div className="select-group">
-            <label>Catégorie :</label>
+        <header className="biblio-header">
+          <h1 className="title neon-title">
+            📚 Bibliothèque <span className="brand">Big Happy</span>
+          </h1>
+          <div className="search-container">
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              className="neon-search"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <div className="toolbar">
             <select
               className="neon-select"
               value={filter}
               onChange={(e) => setFilter(e.target.value)}
             >
-              <option value="Tous">Toutes</option>
+              <option value="Tous">Catégories</option>
               <option value="Favoris">⭐ Favoris</option>
               <option value="Roman">Roman</option>
               <option value="Science Fiction">Science Fiction</option>
               <option value="Autobiographie">Autobiographie</option>
             </select>
-          </div>
-          <div className="select-group">
-            <label>Tri :</label>
             <select
               className="neon-select"
               value={sortBy}
@@ -236,21 +261,22 @@ function Bibliotheque({ onBack }) {
             >
               <option value="Recent">Plus récents</option>
               <option value="Alpha">Alphabétique</option>
-              <option value="Note">Meilleures notes</option>
+              <option value="Note">Notes</option>
             </select>
+            <button className="btn-add-glow" onClick={() => setShowModal(true)}>
+              + Ajouter
+            </button>
+            <button
+              className="btn-history-toggle"
+              onClick={() => setShowHistory(true)}
+            >
+              🕒 {deletedBooks.length}
+            </button>
           </div>
-          <button className="btn-add-glow" onClick={() => setShowModal(true)}>
-            + Ajouter
-          </button>
-          <button
-            className="btn-history-toggle"
-            onClick={() => setShowHistory(true)}
-          >
-            🕒 {deletedBooks.length}
-          </button>
-        </div>
-      </header>
+        </header>
+      </div>
 
+      {/* ZONE DE SCROLL */}
       <div className="scroll-area">
         <div className="book-grid-modern">
           {filtered.map((book) => (
@@ -300,7 +326,7 @@ function Bibliotheque({ onBack }) {
       </div>
 
       <button className="nav-button-fixed" onClick={onBack}>
-        ← Retour au Jeu
+        ← Retour
       </button>
 
       {/* MODAL LECTURE */}
@@ -391,17 +417,21 @@ function Bibliotheque({ onBack }) {
                 }
                 style={{ colorScheme: "dark" }}
               />
-              <select
-                value={newBook.type}
-                onChange={(e) =>
-                  setNewBook({ ...newBook, type: e.target.value })
-                }
-              >
-                <option value="Roman">Roman</option>
-                <option value="Science Fiction">Science Fiction</option>
-                <option value="Autobiographie">Autobiographie</option>
-                <option value="Nouvelle">Nouvelle</option>
-              </select>
+
+              <div className="form-group upload-section">
+                <label
+                  className={`custom-upload ${newBook.image ? "upload-success" : ""}`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    style={{ display: "none" }}
+                  />
+                  {newBook.image ? "✅ Image chargée" : "📷 Charger image"}
+                </label>
+              </div>
+
               <div className="form-actions">
                 <button
                   type="button"
@@ -432,7 +462,7 @@ function Bibliotheque({ onBack }) {
             <h2>🕒 Historique</h2>
             <div className="history-list">
               {deletedBooks.length === 0 ? (
-                <p>Corbeille vide</p>
+                <p>Vide</p>
               ) : (
                 deletedBooks.map((book) => (
                   <div key={book.id} className="history-item">
@@ -456,7 +486,7 @@ function Bibliotheque({ onBack }) {
               )}
             </div>
             <button
-              className="btn-close-history"
+              className="btn-confirm"
               onClick={() => setShowHistory(false)}
             >
               Fermer

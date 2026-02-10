@@ -489,3 +489,45 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 20px;
   cursor: pointer;
 }
+
+
+/* ANIMATION DU HEADER AU SCROLL */
+.collapsible-header {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  max-height: 500px; /* Taille approximative du header complet */
+  opacity: 1;
+  overflow: hidden;
+  transform: translateY(0);
+}
+
+.header-hidden .collapsible-header {
+  max-height: 0;
+  opacity: 0;
+  margin-bottom: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  transform: translateY(-20px);
+  pointer-events: none; /* Désactive les clics quand c'est caché */
+}
+
+/* S'assurer que la zone de scroll prend bien la place restante */
+.biblio-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 95vh;
+  overflow: hidden;
+}
+
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scroll-behavior: smooth;
+}
+
+/* Validation visuelle image succès */
+.upload-success {
+  border-color: #2ed573 !important;
+  color: #2ed573 !important;
+  background: rgba(46, 213, 115, 0.1) !important;
+}
