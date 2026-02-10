@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 
 function Bibliotheque({ onBack }) {
   const [showModal, setShowModal] = useState(false);
-  const [showHistory, setShowHistory] = useState(false); // État pour le Pop-up Historique
+  const [showHistory, setShowHistory] = useState(false);
+  const [selectedBook, setSelectedBook] = useState(null);
   const [filter, setFilter] = useState("Tous");
+  const [sortBy, setSortBy] = useState("Recent");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isEditing, setIsEditing] = useState(null);
 
   const initialBooks = [
@@ -14,6 +17,9 @@ function Bibliotheque({ onBack }) {
       type: "Autobiographie",
       date: "2025-02-10",
       image: null,
+      favori: true,
+      note: 5,
+      resume: "L'ascension fulgurante d'un génie du code.",
     },
     {
       id: 2,
@@ -22,6 +28,9 @@ function Bibliotheque({ onBack }) {
       type: "Science Fiction",
       date: "1949-06-08",
       image: null,
+      favori: false,
+      note: 4,
+      resume: "",
     },
     {
       id: 3,
@@ -30,160 +39,17 @@ function Bibliotheque({ onBack }) {
       type: "Roman",
       date: "1943-04-06",
       image: null,
-    },
-    {
-      id: 4,
-      titre: "Fondation",
-      auteur: "Isaac Asimov",
-      type: "Science Fiction",
-      date: "1951-05-01",
-      image: null,
-    },
-    {
-      id: 5,
-      titre: "L'Étranger",
-      auteur: "Albert Camus",
-      type: "Roman",
-      date: "1942-06-15",
-      image: null,
-    },
-    {
-      id: 6,
-      titre: "Le Horla",
-      auteur: "Guy de Maupassant",
-      type: "Nouvelle",
-      date: "1887-05-01",
-      image: null,
-    },
-    {
-      id: 7,
-      titre: "Une vie",
-      auteur: "Simone Veil",
-      type: "Autobiographie",
-      date: "2007-10-31",
-      image: null,
-    },
-    {
-      id: 8,
-      titre: "Dune",
-      auteur: "Frank Herbert",
-      type: "Science Fiction",
-      date: "1965-08-01",
-      image: null,
-    },
-    {
-      id: 9,
-      titre: "La Métamorphose",
-      auteur: "Franz Kafka",
-      type: "Nouvelle",
-      date: "1915-10-15",
-      image: null,
-    },
-    {
-      id: 10,
-      titre: "Les Misérables",
-      auteur: "Victor Hugo",
-      type: "Roman",
-      date: "1862-04-03",
-      image: null,
-    },
-    {
-      id: 11,
-      titre: "Le Meilleur des mondes",
-      auteur: "Aldous Huxley",
-      type: "Science Fiction",
-      date: "1932-01-01",
-      image: null,
-    },
-    {
-      id: 12,
-      titre: "Steve Jobs",
-      auteur: "Walter Isaacson",
-      type: "Autobiographie",
-      date: "2011-10-24",
-      image: null,
-    },
-    {
-      id: 13,
-      titre: "Le Loup et l'Agneau",
-      auteur: "Jean de La Fontaine",
-      type: "Nouvelle",
-      date: "1668-03-01",
-      image: null,
-    },
-    {
-      id: 14,
-      titre: "Neuromancien",
-      auteur: "William Gibson",
-      type: "Science Fiction",
-      date: "1984-07-01",
-      image: null,
-    },
-    {
-      id: 15,
-      titre: "Journal",
-      auteur: "Anne Frank",
-      type: "Autobiographie",
-      date: "1947-06-25",
-      image: null,
-    },
-    {
-      id: 16,
-      titre: "L'Alchimiste",
-      auteur: "Paulo Coelho",
-      type: "Roman",
-      date: "1988-01-01",
-      image: null,
-    },
-    {
-      id: 17,
-      titre: "La Machine à explorer le temps",
-      auteur: "H.G. Wells",
-      type: "Science Fiction",
-      date: "1895-01-01",
-      image: null,
-    },
-    {
-      id: 18,
-      titre: "Chère Ijeawele",
-      auteur: "Chimamanda Ngozi Adichie",
-      type: "Nouvelle",
-      date: "2017-03-07",
-      image: null,
-    },
-    {
-      id: 19,
-      titre: "Mémoires d'une jeune fille rangée",
-      auteur: "Simone de Beauvoir",
-      type: "Autobiographie",
-      date: "1958-10-01",
-      image: null,
-    },
-    {
-      id: 20,
-      titre: "Fahrenheit 451",
-      auteur: "Ray Bradbury",
-      type: "Science Fiction",
-      date: "1953-10-19",
-      image: null,
-    },
-    {
-      id: 21,
-      titre: "Big Happy : La Culture du Code",
-      auteur: "L'Équipe Design",
-      type: "Roman",
-      date: "2026-02-01",
-      image: null,
+      favori: false,
+      note: 5,
+      resume: "",
     },
   ];
 
-  // État des livres actifs
   const [books, setBooks] = useState(() => {
     const saved = localStorage.getItem("bh_library_data");
     return saved ? JSON.parse(saved) : initialBooks;
   });
 
-  // État de l'historique (Corbeille)
   const [deletedBooks, setDeletedBooks] = useState(() => {
     const saved = localStorage.getItem("bh_history_data");
     return saved ? JSON.parse(saved) : [];
@@ -195,14 +61,31 @@ function Bibliotheque({ onBack }) {
     type: "Roman",
     date: "",
     image: "",
+    favori: false,
+    note: 0,
+    resume: "",
   });
 
-  // Sauvegarde dans le localStorage
   useEffect(() => {
     localStorage.setItem("bh_library_data", JSON.stringify(books));
     localStorage.setItem("bh_history_data", JSON.stringify(deletedBooks));
   }, [books, deletedBooks]);
 
+  // --- STATISTIQUES ---
+  const totalBooks = books.length;
+  const favoriteCount = books.filter((b) => b.favori).length;
+  const mostCommonType = books.reduce((acc, curr) => {
+    acc[curr.type] = (acc[curr.type] || 0) + 1;
+    return acc;
+  }, {});
+  const topGenre =
+    Object.keys(mostCommonType).length > 0
+      ? Object.keys(mostCommonType).reduce((a, b) =>
+          mostCommonType[a] > mostCommonType[b] ? a : b,
+        )
+      : "Aucun";
+
+  // --- ACTIONS ---
   const handleSave = (e) => {
     e.preventDefault();
     if (isEditing) {
@@ -223,54 +106,139 @@ function Bibliotheque({ onBack }) {
     setShowModal(true);
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setIsEditing(null);
-    setNewBook({ titre: "", auteur: "", type: "Roman", date: "", image: "" });
+  const toggleFavori = (id, e) => {
+    e.stopPropagation();
+    setBooks(books.map((b) => (b.id === id ? { ...b, favori: !b.favori } : b)));
   };
 
-  // --- NOUVELLE LOGIQUE : SUPPRESSION VERS HISTORIQUE ---
-  const deleteToHistory = (id) => {
+  const handleRating = (id, rating) => {
+    setBooks(books.map((b) => (b.id === id ? { ...b, note: rating } : b)));
+    if (selectedBook && selectedBook.id === id) {
+      setSelectedBook({ ...selectedBook, note: rating });
+    }
+  };
+
+  const saveResume = (id, text) => {
+    setBooks(books.map((b) => (b.id === id ? { ...b, resume: text } : b)));
+    if (selectedBook && selectedBook.id === id) {
+      setSelectedBook({ ...selectedBook, resume: text });
+    }
+  };
+
+  const deleteToHistory = (id, e) => {
+    e.stopPropagation();
     const bookToMove = books.find((b) => b.id === id);
-    setDeletedBooks([bookToMove, ...deletedBooks]); // Ajouter à l'historique
-    setBooks(books.filter((b) => b.id !== id)); // Retirer de la liste active
+    setDeletedBooks([bookToMove, ...deletedBooks]);
+    setBooks(books.filter((b) => b.id !== id));
   };
 
-  // --- NOUVELLE LOGIQUE : RESTAURATION ---
   const restoreFromHistory = (id) => {
     const bookToRestore = deletedBooks.find((b) => b.id === id);
     setBooks([bookToRestore, ...books]);
     setDeletedBooks(deletedBooks.filter((b) => b.id !== id));
   };
 
-  // Suppression définitive
   const finalDelete = (id) => {
     if (window.confirm("Supprimer définitivement de l'historique ?")) {
       setDeletedBooks(deletedBooks.filter((b) => b.id !== id));
     }
   };
 
-  const filtered =
-    filter === "Tous" ? books : books.filter((b) => b.type === filter);
+  const closeModal = () => {
+    setShowModal(false);
+    setIsEditing(null);
+    setNewBook({
+      titre: "",
+      auteur: "",
+      type: "Roman",
+      date: "",
+      image: "",
+      favori: false,
+      note: 0,
+      resume: "",
+    });
+  };
+
+  // --- FILTRAGE ET TRI ---
+  const filtered = books
+    .filter((b) => {
+      const matchType =
+        filter === "Tous"
+          ? true
+          : filter === "Favoris"
+            ? b.favori
+            : b.type === filter;
+      const matchSearch =
+        b.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        b.auteur.toLowerCase().includes(searchTerm.toLowerCase());
+      return matchType && matchSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === "Alpha") return a.titre.localeCompare(b.titre);
+      if (sortBy === "Note") return (b.note || 0) - (a.note || 0);
+      return new Date(b.date) - new Date(a.date);
+    });
 
   return (
     <div className="biblio-wrapper">
+      {/* TABLEAU DE BORD STATS */}
+      <div className="stats-dashboard">
+        <div className="stat-card">
+          <span>📚 Total</span>
+          <strong>{totalBooks}</strong>
+        </div>
+        <div className="stat-card">
+          <span>❤️ Favoris</span>
+          <strong>{favoriteCount}</strong>
+        </div>
+        <div className="stat-card">
+          <span>🔥 Top Genre</span>
+          <strong>{topGenre}</strong>
+        </div>
+      </div>
+
       <header className="biblio-header">
-        <h1 className="title">
+        {/* TITRE RE-INTÉGRÉ ICI */}
+        <h1 className="title neon-title">
           📚 Bibliothèque <span className="brand">Big Happy</span>
         </h1>
+
+        <div className="search-container">
+          <input
+            type="text"
+            placeholder="Rechercher un titre, un auteur..."
+            className="neon-search"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
         <div className="toolbar">
-          <select
-            className="neon-select"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="Tous">Toutes les catégories</option>
-            <option value="Roman">Roman</option>
-            <option value="Nouvelle">Nouvelle</option>
-            <option value="Science Fiction">Science Fiction</option>
-            <option value="Autobiographie">Autobiographie</option>
-          </select>
+          <div className="select-group">
+            <label>Catégorie :</label>
+            <select
+              className="neon-select"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            >
+              <option value="Tous">Toutes</option>
+              <option value="Favoris">⭐ Favoris</option>
+              <option value="Roman">Roman</option>
+              <option value="Science Fiction">Science Fiction</option>
+              <option value="Autobiographie">Autobiographie</option>
+            </select>
+          </div>
+          <div className="select-group">
+            <label>Tri :</label>
+            <select
+              className="neon-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+            >
+              <option value="Recent">Plus récents</option>
+              <option value="Alpha">Alphabétique</option>
+              <option value="Note">Meilleures notes</option>
+            </select>
+          </div>
           <button className="btn-add-glow" onClick={() => setShowModal(true)}>
             + Ajouter
           </button>
@@ -278,7 +246,7 @@ function Bibliotheque({ onBack }) {
             className="btn-history-toggle"
             onClick={() => setShowHistory(true)}
           >
-            🕒 Historique ({deletedBooks.length})
+            🕒 {deletedBooks.length}
           </button>
         </div>
       </header>
@@ -286,8 +254,18 @@ function Bibliotheque({ onBack }) {
       <div className="scroll-area">
         <div className="book-grid-modern">
           {filtered.map((book) => (
-            <div key={book.id} className="glass-card">
+            <div
+              key={book.id}
+              className={`glass-card ${book.favori ? "gold-border" : ""}`}
+              onClick={() => setSelectedBook(book)}
+            >
               <div className="card-thumb">
+                <button
+                  className={`fav-icon ${book.favori ? "active" : ""}`}
+                  onClick={(e) => toggleFavori(book.id, e)}
+                >
+                  ❤
+                </button>
                 {book.image ? (
                   <img src={book.image} alt="cover" />
                 ) : (
@@ -296,17 +274,21 @@ function Bibliotheque({ onBack }) {
               </div>
               <div className="card-body">
                 <h3>{book.titre}</h3>
-                <p className="meta">
-                  <span>{book.auteur}</span> • {book.type}
-                </p>
-                <p className="date-tag">Paru le {book.date}</p>
+                <div className="stars">{"⭐".repeat(book.note || 0)}</div>
+                <p className="meta">{book.auteur}</p>
                 <div className="card-footer">
-                  <button className="btn-edit" onClick={() => openEdit(book)}>
+                  <button
+                    className="btn-edit"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openEdit(book);
+                    }}
+                  >
                     Modifier
                   </button>
                   <button
                     className="btn-del"
-                    onClick={() => deleteToHistory(book.id)}
+                    onClick={(e) => deleteToHistory(book.id, e)}
                   >
                     Supprimer
                   </button>
@@ -321,89 +303,105 @@ function Bibliotheque({ onBack }) {
         ← Retour au Jeu
       </button>
 
+      {/* MODAL LECTURE */}
+      {selectedBook && (
+        <div
+          className="modal-overlay-glass"
+          onClick={() => setSelectedBook(null)}
+        >
+          <div
+            className="modal-panel detail-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="detail-header">
+              {selectedBook.image ? (
+                <img
+                  src={selectedBook.image}
+                  className="detail-cover"
+                  alt="cover"
+                />
+              ) : (
+                <div className="detail-cover-placeholder">📖</div>
+              )}
+              <div>
+                <h2>{selectedBook.titre}</h2>
+                <p className="brand">{selectedBook.auteur}</p>
+                <div className="rating-select">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <span
+                      key={star}
+                      onClick={() => handleRating(selectedBook.id, star)}
+                      style={{
+                        cursor: "pointer",
+                        fontSize: "1.5rem",
+                        opacity: (selectedBook.note || 0) >= star ? 1 : 0.2,
+                      }}
+                    >
+                      ⭐
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <textarea
+              placeholder="Résumé..."
+              value={selectedBook.resume || ""}
+              onChange={(e) => saveResume(selectedBook.id, e.target.value)}
+            />
+            <button
+              className="btn-confirm"
+              onClick={() => setSelectedBook(null)}
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* MODAL AJOUT / EDITION */}
       {showModal && (
         <div className="modal-overlay-glass">
           <div className="modal-panel">
-            <h2>{isEditing ? "Édition du livre" : "Nouveau chef-d'œuvre"}</h2>
+            <h2>{isEditing ? "Édition" : "Nouveau Livre"}</h2>
             <form onSubmit={handleSave} className="neon-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Titre</label>
-                  <input
-                    type="text"
-                    value={newBook.titre}
-                    required
-                    onChange={(e) =>
-                      setNewBook({ ...newBook, titre: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Auteur</label>
-                  <input
-                    type="text"
-                    value={newBook.auteur}
-                    required
-                    onChange={(e) =>
-                      setNewBook({ ...newBook, auteur: e.target.value })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Catégorie</label>
-                  <select
-                    value={newBook.type}
-                    onChange={(e) =>
-                      setNewBook({ ...newBook, type: e.target.value })
-                    }
-                  >
-                    <option value="Roman">Roman</option>
-                    <option value="Nouvelle">Nouvelle</option>
-                    <option value="Science Fiction">Science Fiction</option>
-                    <option value="Autobiographie">Autobiographie</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Date de parution</label>
-                  <input
-                    type="date"
-                    value={newBook.date}
-                    required
-                    onChange={(e) =>
-                      setNewBook({ ...newBook, date: e.target.value })
-                    }
-                    style={{ colorScheme: "dark" }}
-                  />
-                </div>
-              </div>
-              <div className="form-group upload-section">
-                <label className="custom-upload">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      e.target.files[0] &&
-                      setNewBook({
-                        ...newBook,
-                        image: URL.createObjectURL(e.target.files[0]),
-                      })
-                    }
-                  />
-                  {newBook.image
-                    ? "✅ Image chargée"
-                    : "📷 Téléverser une couverture"}
-                </label>
-                {newBook.image && (
-                  <img
-                    src={newBook.image}
-                    alt="prev"
-                    className="mini-preview"
-                  />
-                )}
-              </div>
+              <input
+                type="text"
+                placeholder="Titre"
+                value={newBook.titre}
+                required
+                onChange={(e) =>
+                  setNewBook({ ...newBook, titre: e.target.value })
+                }
+              />
+              <input
+                type="text"
+                placeholder="Auteur"
+                value={newBook.auteur}
+                required
+                onChange={(e) =>
+                  setNewBook({ ...newBook, auteur: e.target.value })
+                }
+              />
+              <input
+                type="date"
+                value={newBook.date}
+                required
+                onChange={(e) =>
+                  setNewBook({ ...newBook, date: e.target.value })
+                }
+                style={{ colorScheme: "dark" }}
+              />
+              <select
+                value={newBook.type}
+                onChange={(e) =>
+                  setNewBook({ ...newBook, type: e.target.value })
+                }
+              >
+                <option value="Roman">Roman</option>
+                <option value="Science Fiction">Science Fiction</option>
+                <option value="Autobiographie">Autobiographie</option>
+                <option value="Nouvelle">Nouvelle</option>
+              </select>
               <div className="form-actions">
                 <button
                   type="button"
@@ -421,21 +419,24 @@ function Bibliotheque({ onBack }) {
         </div>
       )}
 
-      {/* POP-UP HISTORIQUE */}
+      {/* MODAL HISTORIQUE */}
       {showHistory && (
-        <div className="modal-overlay-glass">
-          <div className="modal-panel history-panel">
-            <h2>🕒 Historique des suppressions</h2>
+        <div
+          className="modal-overlay-glass"
+          onClick={() => setShowHistory(false)}
+        >
+          <div
+            className="modal-panel history-panel"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2>🕒 Historique</h2>
             <div className="history-list">
               {deletedBooks.length === 0 ? (
-                <p className="empty-msg">Aucun livre dans la corbeille.</p>
+                <p>Corbeille vide</p>
               ) : (
                 deletedBooks.map((book) => (
                   <div key={book.id} className="history-item">
-                    <div className="history-info">
-                      <span className="h-titre">{book.titre}</span>
-                      <span className="h-auteur">{book.auteur}</span>
-                    </div>
+                    <span>{book.titre}</span>
                     <div className="history-actions">
                       <button
                         className="btn-restore"
